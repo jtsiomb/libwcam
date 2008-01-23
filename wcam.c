@@ -328,11 +328,17 @@ int wcam_check_ctl(int fd, int ctl_id, int *low, int *high, int *step)
 		break;
 
 	case V4L2_CTRL_TYPE_MENU:
-		if(ctl_id == WCAM_CTL_AUTOEXPOSURE) {
+		if(ctl_id == WCAM_CTL_AUTO_EXPOSURE) {
 			if(low) *low = 1;
 			if(high) *high = 8;
 			if(step) *step = 7;
 			break;
+		}
+		if(ctl_id == WCAM_CTL_AUTO_WHITE_BALANCE) {
+			printf("foo\n");
+		}
+		if(ctl_id == WCAM_CTL_AUTO_WHITE_BALANCE_TEMP) {
+			printf("bar\n");
 		}
 		
 	default:
@@ -469,6 +475,10 @@ static void init_yuv_lut(void)
 #define V4L2_CID_EXPOSURE_ABSOLUTE	(V4L2_CID_PRIVATE_BASE+11)
 #endif
 
+#ifndef V4L2_CID_WHITE_BALANCE_TEMPERATURE_AUTO
+#define V4L2_CID_WHITE_BALANCE_TEMPERATURE_AUTO	(V4L2_CID_PRIVATE_BASE+12)
+#endif
+
 static int get_v4l_ctlid(int cid)
 {
 	switch(cid) {
@@ -484,6 +494,12 @@ static int get_v4l_ctlid(int cid)
 	case WCAM_CTL_HUE:
 		return V4L2_CID_HUE;
 
+	case WCAM_CTL_AUTO_WHITE_BALANCE:
+		return V4L2_CID_AUTO_WHITE_BALANCE;
+
+	case WCAM_CTL_AUTO_WHITE_BALANCE_TEMP:
+		return V4L2_CID_WHITE_BALANCE_TEMPERATURE_AUTO;
+
 	case WCAM_CTL_GAMMA:
 		return V4L2_CID_GAMMA;
 
@@ -493,7 +509,7 @@ static int get_v4l_ctlid(int cid)
 	case WCAM_CTL_EXPOSURE_ABS:
 		return V4L2_CID_EXPOSURE_ABSOLUTE;
 
-	case WCAM_CTL_AUTOEXPOSURE:
+	case WCAM_CTL_AUTO_EXPOSURE:
 		return V4L2_CID_EXPOSURE_AUTO;
 
 	case WCAM_CTL_GAIN:
