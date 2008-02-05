@@ -206,8 +206,7 @@ void wcam_close(int fd)
 	close(fd);
 }
 
-
-int wcam_read_frame(int fd, void *fbuf)
+static int read_frame(int fd, void *fbuf, int conv_rgb)
 {
 	int i, buf_idx;
 	unsigned int *buf = fbuf;
@@ -246,16 +245,26 @@ int wcam_read_frame(int fd, void *fbuf)
 		u = (yuyv >> 8) & 0xff;
 		v = (yuyv >> 24) & 0xff;
 
-		r = YUV2RED(y, u, v);
-		g = YUV2GREEN(y, u, v);
-		b = YUV2BLUE(y, u, v);
+		if(conv_rgb) {
+			r = YUV2RED(y, u, v);
+			g = YUV2GREEN(y, u, v);
+			b = YUV2BLUE(y, u, v);
+		} else {
+			r = y;
+			g = u;
+			b = v;
+		}
 		*buf++ = PACK_RGB(r, g, b);
 
 		y = (yuyv >> 16) & 0xff;
 
-		r = YUV2RED(y, u, v);
-		g = YUV2GREEN(y, u, v);
-		b = YUV2BLUE(y, u, v);
+		if(conv_rgb) {
+			r = YUV2RED(y, u, v);
+			g = YUV2GREEN(y, u, v);
+			b = YUV2BLUE(y, u, v);
+		} else {
+			r = y;
+		}
 		*buf++ = PACK_RGB(r, g, b);
 	}
 
@@ -268,6 +277,17 @@ int wcam_read_frame(int fd, void *fbuf)
 
 	return 0;
 }
+
+int wcam_read_frame_yuv(int fd, void *fbuf)
+{
+	return read_frame(fd, fbuf, 0);
+}
+
+int wcam_read_frame_rgb(int fd, void *fbuf)
+{
+	return read_frame(fd, fbuf, 1);
+}
+
 
 int wcam_wait(int fd)
 {

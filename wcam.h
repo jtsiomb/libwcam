@@ -28,8 +28,11 @@ extern "C" {
 int wcam_open(const char *devfile, int xsz, int ysz, int fps);
 void wcam_close(int fd);
 
-/* reads a frame and converts the result to RGBA */
-int wcam_read_frame(int fd, void *fbuf);
+void wcam_set_opt(int fd, int opt, int val);
+int wcam_get_opt(int fd, int opt);
+
+int wcam_read_frame_yuv(int fd, void *fbuf);
+int wcam_read_frame_rgb(int fd, void *fbuf);
 
 /* waits until a frame is ready to be read */
 int wcam_wait(int fd);
