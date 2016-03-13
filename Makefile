@@ -2,12 +2,17 @@
 PREFIX = /usr/local
 
 obj = wcam.o
-lib_a = libwcam.a
-lib_so = libwcam.so
+name = wcam
+so_abi = 0
+so_rev = 1
 
-CC = gcc
-CFLAGS = -pedantic -Wall -g -fpic
-AR = ar
+lib_a = lib$(name).a
+ldname = lib$(name).so
+soname = lib$(name).so.$(so_abi)
+lib_so = lib$(name).so.$(so_abi).$(so_rev)
+shared = -shared -Wl,-soname=$(soname)
+
+CFLAGS = -pedantic -Wall -g -fPIC
 
 .PHONY: all
 all: $(lib_a) $(lib_so)
@@ -16,7 +21,13 @@ $(lib_a): $(obj)
 	$(AR) rcs $@ $(obj)
 
 $(lib_so): $(obj)
-	$(CC) $(CFLAGS) -shared -o $@ $(obj) $(LDFLAGS)
+	$(CC) -o $@ $(shared) $(obj) $(LDFLAGS)
+
+$(soname): $(lib_so)
+	ln -s $< $@
+
+$(ldname): $(soname)
+	ln -s $< $@
 
 .PHONY: clean
 clean:
@@ -24,13 +35,19 @@ clean:
 
 .PHONY: install
 install: $(lib_a) $(lib_so)
-	install -d $(PREFIX)/lib
-	install -m 644 $(lib_a) $(lib_so) $(PREFIX)/lib/
-	install -d $(PREFIX)/include
-	install -m 644 wcam.h $(PREFIX)/include/wcam.h
+	mkdir $(DESTDIR)$(PREFIX)/include $(DESTDIR)$(PREFIX)/lib
+	cp wcam.h $(DESTDIR)$(PREFIX)/include/wcam.h
+	cp $(lib_a) $(DESTDIR)$(PREFIX)/lib/$(lib_a)
+	cp $(lib_so) $(DESTDIR)$(PREFIX)/lib/$(lib_so)
+	cd $(DESTDIR)$(PREFIX)/lib && \
+		ln -s $(lib_so) $(soname) && \
+		ln -s $(soname) $(ldname)
+	
 
 .PHONY: uninstall
 uninstall:
-	rm -f $(PREFIX)/lib/$(lib_a)
-	rm -f $(PREFIX)/lib/$(lib_so)
-	rm -f $(PREFIX)/include/wcam.h
+	rm -f $(DESTDIR)$(PREFIX)/lib/$(lib_a)
+	rm -f $(DESTDIR)$(PREFIX)/lib/$(lib_so)
+	rm -f $(DESTDIR)$(PREFIX)/lib/$(soname)
+	rm -f $(DESTDIR)$(PREFIX)/lib/$(ldname)
+	rm -f $(DESTDIR)$(PREFIX)/include/wcam.h
