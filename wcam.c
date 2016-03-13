@@ -37,14 +37,6 @@ OF SUCH DAMAGE.
 #include <linux/videodev2.h>
 #include "wcam.h"
 
-
-#define PACK_RGB(r, g, b)	\
-	((0xff << 24) | \
-	 (((r) & 0xff) << 16) | \
-	 (((g) & 0xff) << 8) |  \
-	 ((b) & 0xff))
-
-
 /* I/O modes */
 enum {
 	IO_READWR,		/* read(2) frames */
@@ -162,7 +154,7 @@ int wcam_open(const char *devfile, int xsz, int ysz, int fps)
 			perror("buffer allocation failed");
 			goto err;
 		}
-		
+
 		for(i=0; i<NUM_BUF; i++) {
 			size_t blen;
 			off_t map_offset;
@@ -171,7 +163,7 @@ int wcam_open(const char *devfile, int xsz, int ysz, int fps)
 				perror("failed to query buffer");
 				goto err;
 			}
-			
+
 			wcam[fd].buffers[i].len = blen;
 			if((wcam[fd].buffers[i].ptr = mmap(0, blen, PROT_READ | PROT_WRITE, MAP_SHARED,
 							fd, map_offset)) == (void*)-1) {
@@ -236,7 +228,7 @@ void wcam_close(int fd)
 static int read_frame(int fd, void *fbuf, int conv_rgb)
 {
 	int i, buf_idx;
-	unsigned int *buf = fbuf;
+	unsigned char *buf = fbuf;
 
 	switch(wcam[fd].iomode) {
 	case IO_READWR:
@@ -281,7 +273,10 @@ static int read_frame(int fd, void *fbuf, int conv_rgb)
 			g = u;
 			b = v;
 		}
-		*buf++ = PACK_RGB(r, g, b);
+		*buf++ = r;
+		*buf++ = g;
+		*buf++ = b;
+		*buf++ = 255;
 
 		y = (yuyv >> 16) & 0xff;
 
@@ -292,7 +287,10 @@ static int read_frame(int fd, void *fbuf, int conv_rgb)
 		} else {
 			r = y;
 		}
-		*buf++ = PACK_RGB(r, g, b);
+		*buf++ = r;
+		*buf++ = g;
+		*buf++ = b;
+		*buf++ = 255;
 	}
 
 	if(wcam[fd].iomode == IO_MMAP) {
@@ -387,7 +385,7 @@ int wcam_check_ctl(int fd, int ctl_id, int *low, int *high, int *step)
 		if(ctl_id == WCAM_CTL_AUTO_WHITE_BALANCE_TEMP) {
 			printf("bar\n");
 		}
-		
+
 	default:
 		return -1;
 	}
