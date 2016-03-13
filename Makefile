@@ -35,11 +35,12 @@ clean:
 
 .PHONY: install
 install: $(lib_a) $(lib_so)
-	mkdir $(DESTDIR)$(PREFIX)/include $(DESTDIR)$(PREFIX)/lib
+	mkdir -p $(DESTDIR)$(PREFIX)/include $(DESTDIR)$(PREFIX)/lib
 	cp wcam.h $(DESTDIR)$(PREFIX)/include/wcam.h
 	cp $(lib_a) $(DESTDIR)$(PREFIX)/lib/$(lib_a)
 	cp $(lib_so) $(DESTDIR)$(PREFIX)/lib/$(lib_so)
 	cd $(DESTDIR)$(PREFIX)/lib && \
+		rm -f $(soname) $(ldname) && \
 		ln -s $(lib_so) $(soname) && \
 		ln -s $(soname) $(ldname)
 	
